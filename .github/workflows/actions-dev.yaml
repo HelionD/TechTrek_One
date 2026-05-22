@@ -1,0 +1,52 @@
+name: Build, Test and Push Docker Images
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        service:
+          - backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        if: matrix.service == 'backend'
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+
+      - name: Test Python
+        if: matrix.service == 'backend'
+        run: |
+          cd ${{ matrix.service }}
+          pip install -r requirements.txt
+          pytest -q
+
+      - name: Build Docker image
+        run: |
+          VERSION=v${{ github.run_number }}
+
+          docker build \
+            -t helion444/${{ matrix.service }}:$VERSION \
+            ./${{ matrix.service }}
+
+
+      - name: Login to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Push Docker image
+        run: |
+          VERSION=v${{ github.run_number }}
+
+          docker push helion444/${{ matrix.service }}:$VERSION
