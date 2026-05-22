@@ -9,6 +9,8 @@ on:
 jobs:
   pipeline:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     strategy:
       matrix:
@@ -18,6 +20,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Cache pip dependencies
+        if: matrix.service == 'backend'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Setup Python
         if: matrix.service == 'backend'
@@ -32,14 +42,18 @@ jobs:
           pip install -r requirements.txt
           pytest -q
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build Docker image
         run: |
           VERSION=v${{ github.run_number }}
-
-          docker build \
+          docker buildx build \
+            --cache-from type=gha \
+            --cache-to type=gha,mode=max \
+            --load \
             -t helion444/${{ matrix.service }}:$VERSION \
             ./${{ matrix.service }}
-
 
       - name: Login to Docker Hub
         run: |
@@ -48,5 +62,15 @@ jobs:
       - name: Push Docker image
         run: |
           VERSION=v${{ github.run_number }}
-
           docker push helion444/${{ matrix.service }}:$VERSION
+
+      - name: Update Helm image tag
+        if: matrix.service == 'backend'
+        run: |
+          VERSION=v${{ github.run_number }}
+          sed -i "s|^image:.*|image: \"helion444/backend:$VERSION\"|" helm/backend/values.yaml
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add helm/backend/values.yaml
+          git commit -m "ci: update backend image to $VERSION"
+          git push
