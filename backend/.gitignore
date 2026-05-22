@@ -1,0 +1,33 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Database files
+*.db
+*.sqlite
+
+# Pytest/cache
+.pytest_cache/
+.mypy_cache/
+
+# Docker
+docker-compose.override.yml
