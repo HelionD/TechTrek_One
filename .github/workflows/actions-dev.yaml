@@ -2,9 +2,9 @@ name: Build, Test and Push Docker Images
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "ci-test" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "ci-test" ]
 
 jobs:
   pipeline:
