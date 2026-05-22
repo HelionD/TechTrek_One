@@ -1,9 +1,12 @@
-fastapi
-uvicorn
-redis
-pytest
-pytest-cov
-pytest-mock
-pytest-asyncio
-pytest-xdist
+fastapi uvicorn[standard]
+sqlalchemy[asyncio] asyncpg
+alembic
+playwright
+httpx
+apscheduler
+python-jose[cryptography]
+passlib[bcrypt]
+pydantic-settings
+faker
 python-dotenv
+pytest
