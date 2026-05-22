@@ -1,0 +1,5 @@
+replicaCount: 1
+image: "helion444/backend_python:v2"
+service:
+  port: 8000
+redisUrl: "redis://redis-service:6379"
