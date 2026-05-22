@@ -4,7 +4,7 @@ metadata:
   name: backend-deployment
   namespace: techtrek
 spec:
-  replicas: {{.Values.replicaCount}}
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       app: backend
@@ -15,9 +15,11 @@ spec:
     spec:
       containers:
         - name: backend-python
-          image: {{.Values.image}} 
+          image: {{ .Values.image }}
           ports:
-            - containerPort: {{.Values.service.port}}
-          env:
-            - name: REDIS_URL
-              value: {{.Values.redisUrl}}
+            - containerPort: {{ .Values.service.port }}
+          envFrom:
+            - configMapRef:
+                name: backend-config
+            - secretRef:
+                name: backend-secret
