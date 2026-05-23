@@ -10,6 +10,9 @@ on:
     paths:
       - "llm/**"
 
+permissions:
+  contents: write
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -17,8 +20,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Lint server.py (DO NOT FAIL CI)
+      - name: Lint server.py (non-blocking)
         run: |
           pip install pyflakes
           python -m pyflakes llm/server.py || true
@@ -27,10 +33,8 @@ jobs:
         run: python -c "import ast; ast.parse(open('llm/server.py').read()); print('OK')"
 
       - name: Install dependencies
-        run: |
-          pip install pytest
+        run: pip install pytest
 
-      # ✅ FIX: ensure correct import path
       - name: Run tests
         run: |
           PYTHONPATH=. pytest llm/tests -v || pytest -v
@@ -66,9 +70,10 @@ jobs:
       - name: Commit Helm update
         if: github.ref == 'refs/heads/master'
         run: |
+          VERSION=v${{ github.run_number }}
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add helm/llm/values.yaml
-          git commit -m "update image $VERSION" || echo "no changes"
+          git commit -m "ci: update llm image to $VERSION" || echo "no changes"
           git pull --rebase origin master
           git push
