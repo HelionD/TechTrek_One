@@ -1,2 +1,5 @@
 image: helion444/llm:test
 replicaCount: 1
+ 
+service:
+  port: 11434

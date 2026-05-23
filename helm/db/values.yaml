@@ -1,0 +1,36 @@
+image:
+  repository: helion444/db
+  tag: latest
+  pullPolicy: IfNotPresent
+ 
+replicaCount: 1
+ 
+service:
+  type: ClusterIP
+  port: 5432
+ 
+env:
+  POSTGRES_USER: techtrek
+  POSTGRES_PASSWORD: secret
+  POSTGRES_DB: techtrek
+ 
+autoscaling:
+  enabled: false
+ 
+podAnnotations: {}
+podLabels: {}
+podSecurityContext: {}
+securityContext: {}
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+volumeMounts: []
+volumes: []
+ 
+serviceAccount:
+  create: false
+  name: ""

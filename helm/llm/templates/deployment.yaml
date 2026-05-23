@@ -1,3 +1,4 @@
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -13,20 +14,16 @@ spec:
       labels:
         app: llm
     spec:
-      hostNetwork: true # Shife ne hackathon, too powerful
       containers:
         - name: llm
-          image: {{ .Values.image }}  #Shife ne hackathon, v2 esht hardcoded
-          securityContext:
-            capabilities:
-              add:
-                - NET_ADMIN # Shife ne hackathon, too powerful
-                - SYS_ADMIN # Shife ne hackathon, too powerful
-          volumeMounts:
-            - name: host-logs
-              mountPath: /var/log
-              readOnly: true
-      volumes:
-        - name: host-logs
-          hostPath:
-            path: /var/log
+          image: {{ .Values.image }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+ 

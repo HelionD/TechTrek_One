@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: database
+data:
+  REDIS_URL: {{ .Values.redisUrl | quote }}
+  OLLAMA_BASE_URL: {{ .Values.ollamaBaseUrl | quote }}
