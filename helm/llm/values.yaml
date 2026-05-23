@@ -1,0 +1,2 @@
+image: helion444/llm:test
+replicaCount: 1
