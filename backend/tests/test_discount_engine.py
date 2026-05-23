@@ -58,3 +58,13 @@ def test_generate_discounts_for_user_uses_fallback_when_ollama_is_unavailable():
     assert isinstance(result, list)
     assert len(result) == 1
     assert result[0]["discount_id"] == "discount-1"
+
+    def get_all_available_products():
+        return []
+
+
+    def create_or_replace_discount(*args, **kwargs):
+        return {
+            "status": "ok",
+            "message": "stub for CI"
+        }
