@@ -1,5 +1,5 @@
 replicaCount: 1
-image: "helion444/backend:v6"
+image: "helion444/backend:v7"
 service:
   port: 8000
 redisUrl: "redis://redis-service:6379"
