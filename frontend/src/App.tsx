@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Header from './components/Header';
 import CartDrawer from './components/CartDrawer';
 import ProductCard from './components/ProductCard';
@@ -22,13 +22,7 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const shopRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    loadProducts(controller.signal);
-    return () => controller.abort();
-  }, [selectedCategory]);
-
-  async function loadProducts(signal: AbortSignal) {
+  const loadProducts = useCallback(async (signal: AbortSignal) => {
     setLoading(true);
     setError(null);
 
@@ -41,7 +35,7 @@ function App() {
       if (!signal.aborted) {
         setProducts(response.items);
       }
-    } catch (err) {
+    } catch {
       if (!signal.aborted) {
         setError('Unable to reach backend products. Showing sample products until the API is available.');
         setProducts(MOCK_PRODUCTS);
@@ -51,7 +45,18 @@ function App() {
         setLoading(false);
       }
     }
-  }
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function run() {
+      await loadProducts(controller.signal);
+    }
+
+    run();
+    return () => controller.abort();
+  }, [loadProducts]);
 
   function handleAddToCart(product: Product) {
     setCartItems((items) => {
