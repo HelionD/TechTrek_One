@@ -26,11 +26,14 @@ jobs:
       - name: Syntax check
         run: python -c "import ast; ast.parse(open('llm/server.py').read()); print('OK')"
 
-      - name: Install pytest
-        run: pip install pytest
+      - name: Install dependencies
+        run: |
+          pip install pytest
 
+      # ✅ FIX: ensure correct import path
       - name: Run tests
-        run: pytest
+        run: |
+          PYTHONPATH=. pytest llm/tests -v || pytest -v
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -67,4 +70,5 @@ jobs:
           git config user.email "github-actions@github.com"
           git add helm/llm/values.yaml
           git commit -m "update image $VERSION" || echo "no changes"
+          git pull --rebase origin master
           git push
