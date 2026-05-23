@@ -25,11 +25,17 @@ def create_app() -> FastAPI:
     @app.on_event("startup")
     async def _startup():
         # start background scheduler
-        start_scheduler()
+        try:
+            start_scheduler()
+        except Exception as e:
+            print("Failed to start scheduler:", repr(e))
 
     @app.on_event("shutdown")
     async def _shutdown():
-        shutdown_scheduler()
+        try:
+            shutdown_scheduler()
+        except Exception:
+            pass
 
     return app
 

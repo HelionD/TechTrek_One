@@ -1,0 +1,365 @@
+.pdm-backdrop {
+  align-items: flex-start;
+  padding: 0;
+}
+
+.pdm-sheet {
+  width: 100%;
+  max-width: 1100px;
+  max-height: 95vh;
+  margin: auto;
+  background: var(--white);
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.pdm-topbar {
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-100);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.pdm-back {
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--purple);
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: background 0.15s;
+  width: 80px;
+}
+
+.pdm-back:hover { background: var(--purple-light); }
+
+.pdm-topbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--purple);
+}
+
+.pdm-logo-box {
+  width: 28px;
+  height: 28px;
+  background: var(--purple);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--yellow);
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.pdm-body {
+  display: flex;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.pdm-image-col {
+  flex: 0 0 45%;
+  background: var(--gray-50);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  min-height: 400px;
+}
+
+.pdm-image-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pdm-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: var(--purple);
+  color: var(--white);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 20px;
+  z-index: 1;
+}
+
+.pdm-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.pdm-placeholder {
+  color: var(--purple-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.pdm-thumbs {
+  display: flex;
+  gap: 8px;
+}
+
+.pdm-thumb {
+  width: 40px;
+  height: 40px;
+  background: var(--gray-200);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.pdm-thumb.active { border-color: var(--purple); background: var(--purple-light); }
+
+.pdm-info-col {
+  flex: 1;
+  padding: 32px 36px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pdm-brand {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.pdm-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gray-900);
+  line-height: 1.3;
+}
+
+.pdm-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.pdm-price {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--purple);
+  font-family: var(--font-display);
+}
+
+.pdm-original {
+  font-size: 16px;
+  color: var(--gray-400);
+  text-decoration: line-through;
+}
+
+.pdm-saving {
+  display: inline-block;
+  background: #D1FAE5;
+  color: #065F46;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 20px;
+}
+
+.pdm-reasoning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--purple-light);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--purple);
+  line-height: 1.5;
+}
+
+.pdm-reasoning span { font-size: 18px; flex-shrink: 0; }
+
+.pdm-specs-section { margin-top: 4px; }
+
+.pdm-specs-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
+
+.pdm-specs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border: 1px solid var(--gray-100);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.pdm-spec-row {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--gray-100);
+  border-right: 1px solid var(--gray-100);
+}
+
+.pdm-spec-row:nth-child(even) { border-right: none; }
+.pdm-spec-row:nth-last-child(-n+2) { border-bottom: none; }
+
+.pdm-spec-key {
+  font-size: 11px;
+  color: var(--gray-400);
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.pdm-spec-val {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.pdm-description {
+  font-size: 14px;
+  color: var(--gray-500);
+  line-height: 1.6;
+}
+
+.pdm-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.pdm-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 18px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 2px solid;
+}
+
+.pdm-btn--cart {
+  background: var(--purple);
+  color: var(--white);
+  border-color: var(--purple);
+  flex: 1;
+}
+
+.pdm-btn--cart:hover { background: var(--purple-dark); border-color: var(--purple-dark); }
+
+.pdm-btn--cart.added { background: var(--success); border-color: var(--success); }
+
+.pdm-btn--wish {
+  background: transparent;
+  color: var(--purple);
+  border-color: var(--purple-light);
+}
+
+.pdm-btn--wish:hover { background: var(--purple-light); }
+
+.pdm-pay-section { margin-top: 4px; }
+
+.pdm-pay-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
+
+.pdm-pay-btns {
+  display: flex;
+  gap: 10px;
+}
+
+.pdm-pay-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.pdm-pay-btn--pre {
+  background: var(--purple);
+  color: var(--white);
+}
+
+.pdm-pay-btn--post {
+  background: var(--yellow);
+  color: var(--purple);
+}
+
+.pdm-shipping {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--gray-500);
+  font-size: 13px;
+  margin-top: 18px;
+}
+
+.pdm-close-fab {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: var(--gray-100);
+  color: var(--gray-600);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.pdm-close-fab:hover { background: var(--gray-200); }
+
+@media (max-width: 900px) {
+  .pdm-body { flex-direction: column; }
+  .pdm-image-col,
+  .pdm-info-col { width: 100%; padding: 24px; }
+}

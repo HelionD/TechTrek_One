@@ -24,7 +24,9 @@ async def sync_user(
                 year = int(x_device_year)
             except ValueError:
                 year = None
-        await crud_users.update_device_info(db, user, x_device_model, year, x_device_brand)
+        await crud_users.update_device_info(
+            db, user, x_device_model, year, x_device_brand
+        )
     return user
 
 

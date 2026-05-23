@@ -1,12 +1,11 @@
 from typing import List
 from urllib.parse import urljoin
 
-from playwright.async_api import async_playwright
+from playwright.async_api import Page, async_playwright
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.products import upsert_product, mark_unavailable
 from app.models.product import ProductCategory
-
 
 CATEGORY_URLS = {
     ProductCategory.telefona: "https://www.one.al/sq/individi/e-shop/e_shop/telefona",
@@ -18,7 +17,7 @@ async def _click_load_more(page):
     # Try several common selectors used for JS pagination buttons
     selectors = [
         "button.load-more",
-        "button[aria-label=\"Load more\"]",
+        'button[aria-label="Load more"]',
         "button[data-load-more]",
         "button:has-text('Shfaq më shumë')",
         "button:has-text('Load more')",
@@ -29,6 +28,25 @@ async def _click_load_more(page):
             if btn and await btn.is_enabled():
                 await btn.click()
                 await page.wait_for_timeout(1000)
+                return True
+        except Exception:
+            continue
+    return False
+
+
+async def _accept_cookies(page: Page) -> bool:
+    selectors = [
+        "button:has-text('Pranoj')",
+        "button:has-text('Prano')",
+        "button:has-text('Accept')",
+        "button:has-text('Agree')",
+    ]
+    for sel in selectors:
+        try:
+            button = page.locator(sel)
+            if await button.count() > 0:
+                await button.first.click()
+                await page.wait_for_timeout(2000)
                 return True
         except Exception:
             continue
@@ -49,8 +67,8 @@ async def _gather_product_links(page) -> List[str]:
                 href = urljoin("https://www.one.al", href)
             if "one.al" not in href:
                 continue
-            # heuristics: product pages often contain 'produkt' or '/p/' or '/product'
-            if any(x in href for x in ["/produkt", "/p/", "/product", "e-shop"]):
+            # heuristics: product pages on one.al use PV IDs or known product routes
+            if "/PV" in href or any(x in href for x in ["/produkt", "/p/", "/product"]):
                 links.add(href.split("#")[0])
         except Exception:
             continue
@@ -76,20 +94,26 @@ async def _parse_product_page(page, url: str) -> dict:
                     name = text
                     break
 
-        # price
-        price_selectors = [".price", ".product-price", "[itemprop='price']"]
-        for sel in price_selectors:
-            el = await page.query_selector(sel)
-            if el:
-                text = (await el.inner_text()).strip()
-                if text:
-                    # keep digits and dots/comma
-                    cleaned = "".join(ch for ch in text if (ch.isdigit() or ch in ",."))
-                    try:
-                        price = float(cleaned.replace(",", ""))
-                    except Exception:
-                        price = None
-                    break
+        # price: search visible page text for the first LEK or € amount
+        price_text = await page.evaluate(r"""
+            () => {
+                const regex = /(\d[\d.,]*)(?:\s*(?:LEK|LEKË|L|€))/i;
+                const nodes = Array.from(document.querySelectorAll('body *'));
+                for (const node of nodes) {
+                    const text = node.textContent?.trim();
+                    if (!text || text.length > 80) continue;
+                    const match = regex.exec(text);
+                    if (match) return match[0];
+                }
+                return null;
+            }
+            """)
+        if price_text:
+            cleaned = "".join(ch for ch in price_text if (ch.isdigit() or ch in ",."))
+            try:
+                price = float(cleaned.replace(",", ""))
+            except Exception:
+                price = None
 
         # image
         img = await page.query_selector("img[src]")
@@ -101,7 +125,9 @@ async def _parse_product_page(page, url: str) -> dict:
                 image = src
 
         # description
-        desc_el = await page.query_selector(".description, #description, [itemprop='description']")
+        desc_el = await page.query_selector(
+            ".description, #description, [itemprop='description']"
+        )
         if desc_el:
             description = (await desc_el.inner_text()).strip()
 
@@ -128,7 +154,9 @@ async def scrape_category(db: AsyncSession, category: ProductCategory, url: str)
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         page = await browser.new_page()
-        await page.goto(url, wait_until="networkidle")
+        await page.goto(url, wait_until="load")
+        await _accept_cookies(page)
+        await page.wait_for_timeout(2500)
 
         # Try to click load-more until it stops working
         for _ in range(10):
@@ -140,7 +168,9 @@ async def scrape_category(db: AsyncSession, category: ProductCategory, url: str)
 
         for link in links:
             try:
-                await page.goto(link, wait_until="networkidle")
+                await page.goto(link, wait_until="load")
+                await _accept_cookies(page)
+                await page.wait_for_timeout(1500)
                 data = await _parse_product_page(page, link)
                 data["category"] = category
                 product, created = await upsert_product(db, data)

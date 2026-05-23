@@ -15,8 +15,12 @@ scheduler = AsyncIOScheduler()
 
 
 async def _run_scrape():
-    async with AsyncSessionLocal() as db:  # type: AsyncSession
-        await scrape_all(db)
+    try:
+        async with AsyncSessionLocal() as db:  # type: AsyncSession
+            await scrape_all(db)
+    except Exception as e:
+        # log and swallow to keep scheduler running
+        print("Scrape job failed:", repr(e))
 
 
 async def _refresh_discounts():
@@ -30,8 +34,11 @@ async def _refresh_discounts():
 
 
 async def _expire_discounts():
-    async with AsyncSessionLocal() as db:
-        await expire_old_discounts(db)
+    try:
+        async with AsyncSessionLocal() as db:
+            await expire_old_discounts(db)
+    except Exception as e:
+        print("Expire discounts job failed:", repr(e))
 
 
 def start_scheduler():
