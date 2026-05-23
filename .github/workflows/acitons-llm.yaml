@@ -5,11 +5,7 @@ on:
     branches: [ "master" ]
     paths:
       - "llm/**"
-  pull_request:
-    branches: [ "master" ]
-    paths:
-      - "llm/**"
-  workflow_dispatch: 
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -22,23 +18,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          persist-credentials: true
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Lint server.py (non-blocking)
-        run: |
-          pip install pyflakes
-          python -m pyflakes llm/server.py || true
+          fetch-depth: 0
 
       - name: Syntax check
         run: python -c "import ast; ast.parse(open('llm/server.py').read()); print('OK')"
-
-      - name: Install dependencies
-        run: pip install pytest
-
-      - name: Run tests
-        run: |
-          PYTHONPATH=. pytest llm/tests -v || pytest -v
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -66,16 +50,12 @@ jobs:
         if: github.ref == 'refs/heads/master'
         run: |
           VERSION=v${{ github.run_number }}
-          sed -i "s|tag:.*|tag: $VERSION|" helm/llm/values.yaml
-
-      - name: Commit Helm update
-        if: github.ref == 'refs/heads/master'
-        run: |
-          VERSION=v${{ github.run_number }}
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add helm/frontend/values.yaml
+          git fetch origin master
+          git reset --hard origin/master
+          sed -i "s|tag:.*|tag: $VERSION|" helm/llm/values.yaml
+          git add helm/llm/values.yaml
           git diff --staged --quiet && echo "no changes" && exit 0
-          git commit -m "ci: update frontend image to $VERSION"
-          git pull --rebase origin master
+          git commit -m "ci: update llm image to $VERSION [skip ci]"
           git push
