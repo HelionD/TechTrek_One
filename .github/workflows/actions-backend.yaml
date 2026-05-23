@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ "master" ]
 
+concurrency:
+  group: helm-update
+  cancel-in-progress: false
+
 jobs:
   pipeline:
     runs-on: ubuntu-latest
@@ -20,20 +24,21 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.12
+          python-version: "3.12"
 
       - name: Test Python
+        working-directory: backend
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
         run: |
-          pip install -r backend/requirements.txt
+          pip install -r requirements.txt
           pytest -q
 
       - name: Set up Docker Buildx
@@ -50,15 +55,18 @@ jobs:
             ./backend
 
       - name: Login to Docker Hub
+        if: github.ref == 'refs/heads/master'
         run: |
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Push Docker image
+        if: github.ref == 'refs/heads/master'
         run: |
           VERSION=v${{ github.run_number }}
           docker push helion444/backend:$VERSION
 
       - name: Update Helm image tag
+        if: github.ref == 'refs/heads/master'
         run: |
           VERSION=v${{ github.run_number }}
           sed -i "s|^image:.*|image: \"helion444/backend:$VERSION\"|" helm/backend/values.yaml

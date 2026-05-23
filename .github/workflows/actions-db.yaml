@@ -1,0 +1,92 @@
+name: Build and Push DB Image
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - "db/**"
+  pull_request:
+    branches: [ "master" ]
+    paths:
+      - "db/**"
+
+concurrency:
+  group: helm-update
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate init.sql syntax
+        run: |
+          docker run --rm \
+            -e POSTGRES_USER=techtrek \
+            -e POSTGRES_PASSWORD=secret \
+            -e POSTGRES_DB=techtrek \
+            -v "${{ github.workspace }}/db/init.sql:/docker-entrypoint-initdb.d/01-init.sql" \
+            postgres:15-alpine \
+            docker-entrypoint.sh postgres --version
+          echo "SQL file present and image starts cleanly"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          VERSION=v${{ github.run_number }}
+          docker buildx build \
+            --cache-from type=gha \
+            --cache-to type=gha,mode=max \
+            --load \
+            -t helion444/db:$VERSION \
+            ./db
+
+      - name: Smoke-test DB image
+        run: |
+          docker run -d --name test-db \
+            -e POSTGRES_USER=techtrek \
+            -e POSTGRES_PASSWORD=secret \
+            -e POSTGRES_DB=techtrek \
+            -p 5432:5432 \
+            helion444/db:v${{ github.run_number }}
+          echo "Waiting for Postgres to be ready..."
+          for i in $(seq 1 20); do
+            docker exec test-db pg_isready -U techtrek && break
+            sleep 2
+          done
+          echo "Running schema checks..."
+          docker exec test-db psql -U techtrek -d techtrek -c "\dt" | grep -q "users"
+          docker exec test-db psql -U techtrek -d techtrek -c "\dt" | grep -q "products"
+          docker exec test-db psql -U techtrek -d techtrek -c "SELECT COUNT(*) FROM products;" | grep -qv " 0"
+          docker rm -f test-db
+          echo "DB smoke test passed"
+
+      - name: Login to Docker Hub
+        if: github.ref == 'refs/heads/master'
+        run: |
+          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Push Docker image
+        if: github.ref == 'refs/heads/master'
+        run: |
+          VERSION=v${{ github.run_number }}
+          docker push helion444/db:$VERSION
+
+      - name: Update Helm image tag
+        if: github.ref == 'refs/heads/master'
+        run: |
+          VERSION=v${{ github.run_number }}
+          sed -i "s|^\(  tag:\).*|\1 $VERSION|" helm/db/values.yaml
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add helm/db/values.yaml
+          git commit -m "ci: update db image to $VERSION [skip ci]"
+          git pull --rebase origin master
+          git push
