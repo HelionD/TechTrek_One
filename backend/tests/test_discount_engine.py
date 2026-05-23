@@ -1,6 +1,8 @@
 import asyncio
 from types import SimpleNamespace
+from unittest.mock import patch
 
+import app.llm.discount_engine as discount_engine_impl
 import app.services.discount_engine as discount_engine
 
 
@@ -11,6 +13,8 @@ def test_generate_discounts_for_user_uses_fallback_when_ollama_is_unavailable():
         current_device_model=None,
         current_device_year=None,
         current_device_brand=None,
+        is_student=False,
+        age_group=None,
     )
 
     products = [
@@ -39,17 +43,13 @@ def test_generate_discounts_for_user_uses_fallback_when_ollama_is_unavailable():
     async def fake_call_ollama(prompt):
         raise RuntimeError("service unavailable")
 
-    from unittest.mock import patch
-
-    with patch(
-        "app.services.discount_engine.get_all_available_products",
-        fake_get_all_available_products,
-    ), patch(
-        "app.services.discount_engine.create_or_replace_discount",
-        fake_create_or_replace_discount,
-    ), patch(
-        "app.services.discount_engine.call_ollama",
-        fake_call_ollama,
+    # Patch at the implementation module where the names are actually looked up
+    with patch.object(
+        discount_engine_impl, "get_all_available_products", fake_get_all_available_products
+    ), patch.object(
+        discount_engine_impl, "create_or_replace_discount", fake_create_or_replace_discount
+    ), patch.object(
+        discount_engine_impl, "call_ollama", fake_call_ollama
     ):
         result = asyncio.run(
             discount_engine.generate_discounts_for_user(None, user, top_k=1)
@@ -58,13 +58,3 @@ def test_generate_discounts_for_user_uses_fallback_when_ollama_is_unavailable():
     assert isinstance(result, list)
     assert len(result) == 1
     assert result[0]["discount_id"] == "discount-1"
-
-    def get_all_available_products():
-        return []
-
-
-    def create_or_replace_discount(*args, **kwargs):
-        return {
-            "status": "ok",
-            "message": "stub for CI"
-        }
