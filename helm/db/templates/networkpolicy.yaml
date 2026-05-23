@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: postgres-network-policy
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
 spec:
   podSelector:
     matchLabels:
@@ -11,21 +11,18 @@ spec:
     - Ingress
     - Egress
   ingress:
-    # Allow traffic from techtrek namespace (backend and frontend)
     - from:
         - namespaceSelector:
             matchLabels:
-              name: techtrek
+              kubernetes.io/metadata.name: techtrek
       ports:
         - protocol: TCP
           port: {{ .Values.service.port }}
   egress:
-    # Allow DNS
     - to:
         - namespaceSelector: {}
       ports:
         - protocol: UDP
           port: 53
-    # Allow all outbound (adjust as needed)
     - to:
         - namespaceSelector: {}

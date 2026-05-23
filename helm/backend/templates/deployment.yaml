@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: backend-deployment
-  namespace: techtrek
+  namespace: {{ .Values.namespace | default "techtrek" }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -16,6 +16,7 @@ spec:
       containers:
         - name: backend-python
           image: {{ .Values.image }}
+          imagePullPolicy: {{ .Values.imagePullPolicy | default "IfNotPresent" }}
           ports:
             - containerPort: {{ .Values.service.port }}
           envFrom:

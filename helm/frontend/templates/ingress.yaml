@@ -2,10 +2,10 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: frontend-ingress
-  namespace: techtrek
+  namespace: {{ .Values.namespace | default "techtrek" }}
 spec:
   rules:
-    - host: localhost
+    - host: {{ .Values.ingress.host | default "localhost" }}
       http:
         paths:
           - path: /
