@@ -1,6 +1,6 @@
 image:
-  repository: helion444/db
-  tag: latest
+  repository: postgres
+  tag: "16"
   pullPolicy: IfNotPresent
 
 replicaCount: 1
