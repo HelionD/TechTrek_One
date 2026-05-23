@@ -91,6 +91,9 @@ async def generate_discounts_for_user(
             0.20 if str(getattr(user, "plan_type", "prepaid")) == "postpaid" else 0.10
         )
         default_pct = min(base_pct + student_bonus, 0.50)  # cap at 50%
+        print(
+            f"DEBUG: Using fallback. Products: {len(candidates)}, is_student={is_student}, base_pct={base_pct}"
+        )
         for p in candidates:
             pct = default_pct
             final_price = (
@@ -108,6 +111,8 @@ async def generate_discounts_for_user(
                 llm_factors={"rule": "postpaid_boost", "is_student": is_student},
             )
             results.append({"product_id": str(p.id), "discount_id": str(discount.id)})
+        print(f"DEBUG: Created {len(results)} discounts via fallback")
+        await db.commit()
         return results
 
     # Otherwise, persist results returned by LLM — apply student bonus on top
@@ -149,4 +154,5 @@ async def generate_discounts_for_user(
         except Exception:
             continue
 
+    await db.commit()
     return results

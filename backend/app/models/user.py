@@ -34,13 +34,17 @@ class User(Base):
 
     # One Albania plan info
     plan_type: Mapped[PlanType] = mapped_column(
-        SAEnum(PlanType), nullable=False, default=PlanType.prepaid
+        SAEnum(PlanType, values_callable=lambda x: [e.value for e in x]),
+        nullable=False,
+        default=PlanType.prepaid,
     )
     plan_name: Mapped[str] = mapped_column(String(100), nullable=True)
     subscription_start_date: Mapped[date] = mapped_column(Date, nullable=True)
     monthly_spend_avg: Mapped[float] = mapped_column(Float, nullable=True, default=0.0)
     data_usage_gb: Mapped[float] = mapped_column(Float, nullable=True, default=0.0)
-    age_group: Mapped[AgeGroup] = mapped_column(SAEnum(AgeGroup), nullable=True)
+    age_group: Mapped[AgeGroup] = mapped_column(
+        SAEnum(AgeGroup, values_callable=lambda x: [e.value for e in x]), nullable=True
+    )
     preferred_language: Mapped[str] = mapped_column(String(5), default="sq")
 
     # Student flag — enables extra student-only discounts

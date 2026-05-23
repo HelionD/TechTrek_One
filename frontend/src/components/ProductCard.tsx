@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { useLanguage } from '../locales/LanguageContext';
 import type { Product } from '../types';
 import './ProductCard.css';
 
@@ -26,16 +28,25 @@ function WatchIcon() {
 }
 
 export default function ProductCard({ product, onClick }: ProductCardProps) {
+  const { t } = useLanguage();
   const displayPrice = product.final_price ?? product.price_original;
   const hasDiscount = !!product.discount_percentage && product.discount_percentage > 0;
+  const [imgFailed, setImgFailed] = useState(false);
+  const showImage = !!product.image_url && !imgFailed;
 
   return (
     <article className="product-card fade-in" onClick={() => onClick(product)}>
       {hasDiscount && <div className="product-badge">−{product.discount_percentage}%</div>}
 
       <div className="product-image-area">
-        {product.image_url ? (
-          <img src={product.image_url} alt={product.name} className="product-image" loading="lazy" />
+        {showImage && product.image_url ? (
+          <img
+            src={product.image_url}
+            alt={product.name}
+            className="product-image"
+            loading="lazy"
+            onError={() => setImgFailed(true)}
+          />
         ) : (
           <div className="product-placeholder">
             {product.category === 'telefona' ? <PhoneIcon /> : <WatchIcon />}
@@ -56,9 +67,9 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
           )}
         </div>
 
-        {product.reasoning && <p className="product-ai-hint">✨ Personalised offer</p>}
+        {product.reasoning && <p className="product-ai-hint">{t.product.personalised}</p>}
 
-        <button className="product-cta">View Details →</button>
+        <button className="product-cta">{t.product.viewDetails}</button>
       </div>
     </article>
   );

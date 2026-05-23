@@ -14,7 +14,6 @@ CATEGORY_URLS = {
 
 
 async def _click_load_more(page):
-    # Try several common selectors used for JS pagination buttons
     selectors = [
         "button.load-more",
         'button[aria-label="Load more"]',
@@ -54,7 +53,6 @@ async def _accept_cookies(page: Page) -> bool:
 
 
 async def _gather_product_links(page) -> List[str]:
-    # Collect anchor hrefs which look like product detail links
     anchors = await page.query_selector_all("a[href]")
     links = set()
     for a in anchors:
@@ -62,12 +60,10 @@ async def _gather_product_links(page) -> List[str]:
             href = await a.get_attribute("href")
             if not href:
                 continue
-            # normalize
             if href.startswith("/"):
                 href = urljoin("https://www.one.al", href)
             if "one.al" not in href:
                 continue
-            # heuristics: product pages on one.al use PV IDs or known product routes
             if "/PV" in href or any(x in href for x in ["/produkt", "/p/", "/product"]):
                 links.add(href.split("#")[0])
         except Exception:
@@ -76,7 +72,6 @@ async def _gather_product_links(page) -> List[str]:
 
 
 async def _parse_product_page(page, url: str) -> dict:
-    # Best-effort parsing: extract title, price, image, description
     name = None
     price = None
     image = None
@@ -94,35 +89,62 @@ async def _parse_product_page(page, url: str) -> dict:
                     name = text
                     break
 
-        # price: search visible page text for the first LEK or € amount
-        price_text = await page.evaluate(r"""
-            () => {
-                const regex = /(\d[\d.,]*)(?:\s*(?:LEK|LEKË|L|€))/i;
-                const nodes = Array.from(document.querySelectorAll('body *'));
-                for (const node of nodes) {
-                    const text = node.textContent?.trim();
-                    if (!text || text.length > 80) continue;
-                    const match = regex.exec(text);
-                    if (match) return match[0];
-                }
-                return null;
-            }
-            """)
-        if price_text:
-            cleaned = "".join(ch for ch in price_text if (ch.isdigit() or ch in ",."))
+        # price
+        price_js = await page.evaluate(
+            '() => { const r = /(\\d[\\d.,]*)(?:\\s*(?:LEK|LEKË|L|€))/i;'
+            ' const nodes = Array.from(document.querySelectorAll("body *"));'
+            ' for (const n of nodes) { const t = n.textContent?.trim();'
+            ' if (!t || t.length > 80) continue; const m = r.exec(t);'
+            ' if (m) return m[0]; } return null; }'
+        )
+        if price_js:
+            cleaned = "".join(ch for ch in price_js if ch.isdigit() or ch in ",.")
             try:
                 price = float(cleaned.replace(",", ""))
             except Exception:
                 price = None
 
-        # image
-        img = await page.query_selector("img[src]")
-        if img:
-            src = await img.get_attribute("src")
-            if src and src.startswith("/"):
-                image = urljoin("https://www.one.al", src)
-            else:
-                image = src
+        # image — try multiple selectors for the product image
+        img_selectors = [
+            "img[itemprop='image']",
+            ".product-gallery img",
+            ".product-image img",
+            ".gallery-cell img",
+            "main .swiper-slide img",
+            "main img[src*='product']",
+            "main img[src*='/is/image/']",
+            "main img[src*='/content/dam/']",
+            "main img[src*='cdn']",
+        ]
+        for sel in img_selectors:
+            imgs = await page.query_selector_all(sel)
+            for img in imgs:
+                src = await img.get_attribute("src")
+                if src:
+                    if src.startswith("/"):
+                        image = urljoin("https://www.one.al", src)
+                    else:
+                        image = src
+                    break
+            if image:
+                break
+
+        # fallback: largest visible image in main content area
+        if not image:
+            try:
+                fallback_img = await page.evaluate(
+                    '() => { const imgs = Array.from(document.querySelectorAll("main img[src], article img[src], .content img[src]"));'
+                    ' if (imgs.length === 0) return null;'
+                    ' imgs.sort((a, b) => (b.naturalWidth || 0) - (a.naturalWidth || 0));'
+                    ' return imgs[0]?.getAttribute("src") || null; }'
+                )
+                if fallback_img:
+                    if fallback_img.startswith("/"):
+                        image = urljoin("https://www.one.al", fallback_img)
+                    else:
+                        image = fallback_img
+            except Exception:
+                pass
 
         # description
         desc_el = await page.query_selector(
@@ -131,7 +153,7 @@ async def _parse_product_page(page, url: str) -> dict:
         if desc_el:
             description = (await desc_el.inner_text()).strip()
 
-        # brand: try meta or specific selector
+        # brand
         brand_el = await page.query_selector(".brand, [itemprop='brand']")
         if brand_el:
             brand = (await brand_el.inner_text()).strip()
@@ -158,7 +180,6 @@ async def scrape_category(db: AsyncSession, category: ProductCategory, url: str)
         await _accept_cookies(page)
         await page.wait_for_timeout(2500)
 
-        # Try to click load-more until it stops working
         for _ in range(10):
             clicked = await _click_load_more(page)
             if not clicked:
@@ -180,7 +201,6 @@ async def scrape_category(db: AsyncSession, category: ProductCategory, url: str)
 
         await browser.close()
 
-    # mark unavailable those not seen this run
     removed = await mark_unavailable(db, category, seen_external_ids)
     return len(links)
 

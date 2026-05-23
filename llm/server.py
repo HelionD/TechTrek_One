@@ -9,31 +9,85 @@ from urllib.parse import urlparse
 
 HOST = "0.0.0.0"
 PORT = 11434
-OLLAMA_BIN = "/usr/local/bin/ollama"
-MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5:3b")
+OLLAMA_BIN = os.environ.get("OLLAMA_BIN", "/usr/local/bin/ollama")
+MODEL = os.environ.get("OLLAMA_MODEL", "tinyllama")
 
 ollama_proc = None
 
 
+def _ollama_installed() -> bool:
+    try:
+        result = subprocess.run(
+            [OLLAMA_BIN, "--version"],
+            capture_output=True,
+            timeout=30,
+            check=True,
+        )
+        return result.returncode == 0
+    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
+        return False
+
+
+def _install_ollama() -> None:
+    print("Installing Ollama CLI...", flush=True)
+    try:
+        subprocess.run(
+            ["sh", "-c", "curl -fsSL https://ollama.com/install.sh | sh"],
+            capture_output=True,
+            timeout=300,
+            check=True,
+        )
+        print("Ollama CLI installed", flush=True)
+    except Exception as e:
+        print(f"Ollama install failed: {e}", file=sys.stderr, flush=True)
+        sys.exit(1)
+
+
+def _ensure_model_pulled() -> None:
+    print(f"Checking for model {MODEL}...", flush=True)
+    try:
+        result = subprocess.run(
+            [OLLAMA_BIN, "list"],
+            capture_output=True,
+            timeout=60,
+            check=True,
+            text=True,
+        )
+        if MODEL in result.stdout:
+            print(f"Model {MODEL} already present", flush=True)
+            return
+    except Exception:
+        pass
+
+    print(f"Pulling model {MODEL}...", flush=True)
+    try:
+        subprocess.run(
+            [OLLAMA_BIN, "pull", MODEL],
+            capture_output=True,
+            timeout=600,
+            check=True,
+        )
+        print(f"Model {MODEL} ready", flush=True)
+    except Exception as e:
+        print(f"Failed to pull model {MODEL}: {e}", file=sys.stderr, flush=True)
+        sys.exit(1)
+
+
 def start_ollama():
     global ollama_proc
+
+    if not _ollama_installed():
+        _install_ollama()
+
     try:
-        # Start Ollama serve in the background
         ollama_proc = subprocess.Popen(
             [OLLAMA_BIN, "serve"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
         print(f"Ollama server started (pid={ollama_proc.pid})", flush=True)
-        # Wait for ollama to be ready
-        time.sleep(3)
-        # Pull the model
-        subprocess.run(
-            [OLLAMA_BIN, "pull", MODEL],
-            capture_output=True,
-            timeout=600,
-        )
-        print(f"Model {MODEL} ready", flush=True)
+        time.sleep(5)
+        _ensure_model_pulled()
     except Exception as e:
         print(f"Ollama init error: {e}", file=sys.stderr, flush=True)
         sys.exit(1)

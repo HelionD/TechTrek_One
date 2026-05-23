@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, delete
 from sqlalchemy.orm import selectinload
 from app.models.discount import UserDiscount
 from app.models.product import Product
@@ -48,11 +48,16 @@ async def create_or_replace_discount(
     reasoning: str | None,
     llm_factors: dict | None,
 ) -> UserDiscount:
-    # deactivate existing active discount for this user+product
-    existing = await get_discount_for_product(db, user_id, product_id)
-    if existing:
-        existing.is_active = False
-        await db.flush()
+    # remove any existing active discount for this user+product before inserting
+    await db.execute(
+        delete(UserDiscount).where(
+            and_(
+                UserDiscount.user_id == user_id,
+                UserDiscount.product_id == product_id,
+                UserDiscount.is_active == True,
+            )
+        )
+    )
 
     expires_at = datetime.now(timezone.utc) + timedelta(
         hours=settings.DISCOUNT_EXPIRY_HOURS

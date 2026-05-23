@@ -2,6 +2,7 @@
   max-width: 440px;
   max-height: 90vh;
   overflow-y: auto;
+  border-bottom: 3px solid var(--gray-900);
 }
 
 .pm-header {
@@ -16,21 +17,23 @@
   align-items: center;
   gap: 7px;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--purple);
+  letter-spacing: -0.3px;
 }
 
 .pm-logo-box {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   background: var(--purple);
-  border-radius: 6px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--yellow);
-  font-weight: 800;
-  font-size: 15px;
+  font-weight: 900;
+  font-size: 18px;
+  box-shadow: 0 2px 8px rgba(91, 30, 140, 0.2);
 }
 
 .pm-close {
@@ -47,7 +50,9 @@
   transition: background 0.15s;
 }
 
-.pm-close:hover { background: var(--gray-200); }
+.pm-close:hover {
+  background: var(--gray-200);
+}
 
 .pm-title {
   font-size: 22px;
@@ -134,7 +139,7 @@
 
 .pm-input-wrap:focus-within {
   border-color: var(--purple);
-  box-shadow: 0 0 0 3px rgba(91,30,140,0.10);
+  box-shadow: 0 0 0 3px rgba(91, 30, 140, 0.10);
 }
 
 .pm-input-wrap.error {
@@ -156,7 +161,9 @@
   background: transparent;
 }
 
-.pm-input-wrap input::placeholder { color: var(--gray-300); }
+.pm-input-wrap input::placeholder {
+  color: var(--gray-300);
+}
 
 .pm-row {
   display: flex;
@@ -232,14 +239,29 @@
   letter-spacing: 0.02em;
 }
 
-.pm-pay-btn:hover { background: var(--purple-dark); }
-.pm-pay-btn:active { transform: scale(0.98); }
+.pm-pay-btn:hover {
+  background: var(--purple-dark);
+}
 
-.pm-pay-btn--postpay { background: var(--yellow-dark); }
-.pm-pay-btn--postpay:hover { background: #b8740e; }
+.pm-pay-btn:active {
+  transform: scale(0.98);
+}
 
-.pm-pay-btn--done { background: var(--success); }
-.pm-pay-btn--done:hover { background: #0d9668; }
+.pm-pay-btn--postpay {
+  background: var(--yellow-dark);
+}
+
+.pm-pay-btn--postpay:hover {
+  background: #b8740e;
+}
+
+.pm-pay-btn--done {
+  background: var(--success);
+}
+
+.pm-pay-btn--done:hover {
+  background: #0d9668;
+}
 
 .pm-processing {
   display: flex;
@@ -278,7 +300,9 @@
   gap: 12px;
 }
 
-.pm-success-icon { color: var(--success); }
+.pm-success-icon {
+  color: var(--success);
+}
 
 .pm-success-title {
   font-size: 22px;

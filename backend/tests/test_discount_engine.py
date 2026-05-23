@@ -1,7 +1,8 @@
+"""Tests for the discount engine."""
 import asyncio
 from types import SimpleNamespace
 
-import app.services.discount_engine as discount_engine
+import app.llm.discount_engine as discount_engine
 
 
 def test_generate_discounts_for_user_uses_fallback_when_ollama_is_unavailable():
@@ -11,6 +12,7 @@ def test_generate_discounts_for_user_uses_fallback_when_ollama_is_unavailable():
         current_device_model=None,
         current_device_year=None,
         current_device_brand=None,
+        is_student=False,
     )
 
     products = [
@@ -42,13 +44,13 @@ def test_generate_discounts_for_user_uses_fallback_when_ollama_is_unavailable():
     from unittest.mock import patch
 
     with patch(
-        "app.services.discount_engine.get_all_available_products",
+        "app.llm.discount_engine.get_all_available_products",
         fake_get_all_available_products,
     ), patch(
-        "app.services.discount_engine.create_or_replace_discount",
+        "app.llm.discount_engine.create_or_replace_discount",
         fake_create_or_replace_discount,
     ), patch(
-        "app.services.discount_engine.call_ollama",
+        "app.llm.discount_engine.call_ollama",
         fake_call_ollama,
     ):
         result = asyncio.run(
