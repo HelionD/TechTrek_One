@@ -10,15 +10,20 @@ service:
   type: ClusterIP
   port: 5432
 
-# These will be used by secrets.yaml
+# Database credentials (used by secrets.yaml)
 postgresUser: techtrek
 postgresPassword: secret
 postgresDb: techtrek
 
-# For configmap.yaml
+# External service URLs (used by configmap.yaml)
 redisUrl: "redis://redis-service:6379"
 ollamaBaseUrl: "http://llm-service:11434"
 
+# Persistence storage size
+persistence:
+  size: 1Gi
+
+# Other values (keep as is)
 autoscaling:
   enabled: false
 
