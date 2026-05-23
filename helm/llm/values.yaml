@@ -1,6 +1,6 @@
 image:
   repository: helion444/llm
-  tag: test
+  tag: v1
   pullPolicy: IfNotPresent
 
 replicaCount: 1

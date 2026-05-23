@@ -1,17 +1,18 @@
-name: Build and Push Frontend Image
+name: Build and Push DB Image
 
 on:
   push:
     branches: [ "master" ]
     paths:
-      - "frontend/**"
-  pull_request:
-    branches: [ "master" ]
-    paths:
-      - "frontend/**"
-  workflow_dispatch: 
+      - "db/**"
+  workflow_dispatch:
+
 permissions:
   contents: write
+
+concurrency:
+  group: helm-update
+  cancel-in-progress: false
 
 jobs:
   build-and-deploy:
@@ -21,8 +22,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          persist-credentials: true
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -30,36 +31,29 @@ jobs:
       - name: Build Docker image
         run: |
           VERSION=v${{ github.run_number }}
-          docker buildx build \
-            --load \
-            -t helion444/frontend:$VERSION \
-            ./frontend
+          docker buildx build --load -t helion444/db:$VERSION ./db
 
-      - name: Login Docker Hub
+      - name: Login to Docker Hub
         if: github.ref == 'refs/heads/master'
         run: |
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      - name: Push image
+      - name: Push Docker image
         if: github.ref == 'refs/heads/master'
         run: |
           VERSION=v${{ github.run_number }}
-          docker push helion444/frontend:$VERSION
+          docker push helion444/db:$VERSION
 
       - name: Update Helm tag
         if: github.ref == 'refs/heads/master'
         run: |
           VERSION=v${{ github.run_number }}
-          sed -i "s|tag:.*|tag: $VERSION|" helm/frontend/values.yaml
-
-      - name: Commit Helm update
-        if: github.ref == 'refs/heads/master'
-        run: |
-          VERSION=v${{ github.run_number }}
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add helm/frontend/values.yaml
+          git fetch origin master
+          git reset --hard origin/master
+          sed -i "s|tag:.*|tag: $VERSION|" helm/db/values.yaml
+          git add helm/db/values.yaml
           git diff --staged --quiet && echo "no changes" && exit 0
-          git commit -m "ci: update frontend image to $VERSION"
-          git pull --rebase origin master
+          git commit -m "ci: update db image to $VERSION [skip ci]"
           git push

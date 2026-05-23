@@ -1,15 +1,12 @@
-name: Build and Push Frontend Image
+name: Build and Push LLM Image
 
 on:
   push:
     branches: [ "master" ]
     paths:
-      - "frontend/**"
-  pull_request:
-    branches: [ "master" ]
-    paths:
-      - "frontend/**"
-  workflow_dispatch: 
+      - "llm/**"
+  workflow_dispatch:
+
 permissions:
   contents: write
 
@@ -21,8 +18,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          persist-credentials: true
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Syntax check
+        run: python -c "import ast; ast.parse(open('llm/server.py').read()); print('OK')"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -32,8 +32,8 @@ jobs:
           VERSION=v${{ github.run_number }}
           docker buildx build \
             --load \
-            -t helion444/frontend:$VERSION \
-            ./frontend
+            -t helion444/llm:$VERSION \
+            ./llm
 
       - name: Login Docker Hub
         if: github.ref == 'refs/heads/master'
@@ -44,22 +44,18 @@ jobs:
         if: github.ref == 'refs/heads/master'
         run: |
           VERSION=v${{ github.run_number }}
-          docker push helion444/frontend:$VERSION
+          docker push helion444/llm:$VERSION
 
       - name: Update Helm tag
         if: github.ref == 'refs/heads/master'
         run: |
           VERSION=v${{ github.run_number }}
-          sed -i "s|tag:.*|tag: $VERSION|" helm/frontend/values.yaml
-
-      - name: Commit Helm update
-        if: github.ref == 'refs/heads/master'
-        run: |
-          VERSION=v${{ github.run_number }}
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add helm/frontend/values.yaml
+          git fetch origin master
+          git reset --hard origin/master
+          sed -i "s|tag:.*|tag: $VERSION|" helm/llm/values.yaml
+          git add helm/llm/values.yaml
           git diff --staged --quiet && echo "no changes" && exit 0
-          git commit -m "ci: update frontend image to $VERSION"
-          git pull --rebase origin master
+          git commit -m "ci: update llm image to $VERSION [skip ci]"
           git push

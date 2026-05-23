@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: frontend-service
-  namespace: techtrek
+  namespace: {{ .Values.namespace | default "techtrek" }}
 spec:
   selector:
     app: frontend

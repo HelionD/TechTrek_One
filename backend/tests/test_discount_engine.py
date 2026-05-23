@@ -1,6 +1,8 @@
 """Tests for the discount engine."""
+
 import asyncio
 from types import SimpleNamespace
+from unittest.mock import patch
 
 import app.llm.discount_engine as discount_engine
 
