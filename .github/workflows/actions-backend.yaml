@@ -67,12 +67,14 @@ jobs:
           VERSION=v${{ github.run_number }}
           sed -i "s|tag:.*|tag: \"$VERSION\"|" helm/backend/values.yaml
 
-      - name: Commit and push changes
+      - name: Commit Helm update
         if: github.ref == 'refs/heads/master'
         run: |
+          VERSION=v${{ github.run_number }}
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add helm/backend/values.yaml
-          git commit -m "ci: update backend image to $VERSION [skip ci]" || echo "No changes"
+          git add helm/frontend/values.yaml
+          git diff --staged --quiet && echo "no changes" && exit 0
+          git commit -m "ci: update frontend image to $VERSION"
           git pull --rebase origin master
           git push
