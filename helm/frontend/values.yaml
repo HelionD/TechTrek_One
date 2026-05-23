@@ -1,6 +1,6 @@
 image:
   repository: helion444/frontend
-  tag: v24
+  tag: v25
   pullPolicy: IfNotPresent
   namespace: ""
 
