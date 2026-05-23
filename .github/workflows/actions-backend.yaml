@@ -12,17 +12,11 @@ jobs:
     permissions:
       contents: write
 
-    strategy:
-      matrix:
-        service:
-          - backend
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Cache pip dependencies
-        if: matrix.service == 'backend'
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
@@ -31,16 +25,15 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: Setup Python
-        if: matrix.service == 'backend'
         uses: actions/setup-python@v5
         with:
           python-version: 3.12
+
       - name: Test Python
-        if: matrix.service == 'backend'
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
         run: |
-          pip install -r ${{ matrix.service }}/requirements.txt
+          pip install -r backend/requirements.txt
           pytest -q
 
       - name: Set up Docker Buildx
@@ -53,9 +46,9 @@ jobs:
             --cache-from type=gha \
             --cache-to type=gha,mode=max \
             --load \
-            -t helion444/${{ matrix.service }}:$VERSION \
-            ./${{ matrix.service }}
-            
+            -t helion444/backend:$VERSION \
+            ./backend
+
       - name: Login to Docker Hub
         run: |
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
@@ -63,9 +56,9 @@ jobs:
       - name: Push Docker image
         run: |
           VERSION=v${{ github.run_number }}
-          docker push helion444/${{ matrix.service }}:$VERSION
+          docker push helion444/backend:$VERSION
+
       - name: Update Helm image tag
-        if: matrix.service == 'backend'
         run: |
           VERSION=v${{ github.run_number }}
           sed -i "s|^image:.*|image: \"helion444/backend:$VERSION\"|" helm/backend/values.yaml

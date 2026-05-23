@@ -72,7 +72,7 @@ jobs:
         if: github.ref == 'refs/heads/master'
         run: |
           VERSION=v${{ github.run_number }}
-          sed -i "s|tag:.*|tag: $VERSION|" helm/frontend/values.yaml
+          sed -i "s|^\(  tag:\).*|\1 $VERSION|" helm/frontend/values.yaml
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add helm/frontend/values.yaml
