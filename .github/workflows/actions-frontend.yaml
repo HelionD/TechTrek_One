@@ -1,0 +1,80 @@
+name: Build and Deploy Frontend
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      # first we need to get the code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # install node so we can run npm stuff
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      # install all the packages from package.json
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      # check if there are any lint errors
+      - name: Run lint
+        working-directory: frontend
+        run: npm run lint
+
+      # build the app so we know it compiles fine
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+
+      # build the docker image for the frontend
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          VERSION=v${{ github.run_number }}
+          docker buildx build \
+            --cache-from type=gha \
+            --cache-to type=gha,mode=max \
+            --load \
+            -t helion444/frontend:$VERSION \
+            ./frontend
+
+      # login to dockerhub so we can push
+      - name: Login to Docker Hub
+        # only push when we merge to master, not on pull requests
+        if: github.ref == 'refs/heads/master'
+        run: |
+          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Push Docker image
+        if: github.ref == 'refs/heads/master'
+        run: |
+          VERSION=v${{ github.run_number }}
+          docker push helion444/frontend:$VERSION
+
+      # update the helm chart so kubernetes knows about the new image
+      - name: Update Helm image tag
+        if: github.ref == 'refs/heads/master'
+        run: |
+          VERSION=v${{ github.run_number }}
+          sed -i "s|tag:.*|tag: $VERSION|" helm/frontend/values.yaml
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add helm/frontend/values.yaml
+          git commit -m "ci: update frontend image to $VERSION [skip ci]"
+          git push
