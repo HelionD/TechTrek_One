@@ -9,7 +9,7 @@ on:
     branches: [ "master" ]
     paths:
       - "db/**"
-
+    workflow_dispatch: 
 concurrency:
   group: helm-update
   cancel-in-progress: false
