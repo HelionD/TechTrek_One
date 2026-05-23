@@ -2,8 +2,13 @@ image:
   repository: helion444/frontend
   tag: v21
   pullPolicy: IfNotPresent
+  namespace: ""
 
 replicaCount: 1
+
+ingress:
+  host: "localhost"
+  className: "nginx"
 
 service:
   type: ClusterIP
