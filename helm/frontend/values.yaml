@@ -1,6 +1,6 @@
 image:
   repository: helion444/frontend
-  tag: v20
+  tag: v21
   pullPolicy: IfNotPresent
 
 replicaCount: 1
