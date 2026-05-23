@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend
-  namespace: namespace: {{ .Values.namespace | default "techtrek" }}
+  namespace: {{ .Values.namespace | default "techtrek" }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
