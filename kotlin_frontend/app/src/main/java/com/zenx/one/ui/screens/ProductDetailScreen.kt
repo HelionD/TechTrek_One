@@ -175,6 +175,29 @@ fun ProductDetailScreen(
                                 lineHeight = 20.sp
                             )
                         }
+
+                        // Specs grid (from JSONB)
+                        if (!product.specs.isNullOrEmpty()) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "DETAILS",
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 11.sp,
+                                color = Color(0xFF9E9E9E),
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            product.specs.forEach { (key, value) ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 2.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(key, color = Color(0xFF6B7280), fontSize = 13.sp, modifier = Modifier.weight(1f))
+                                    Text(value, fontWeight = FontWeight.Medium, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                                }
+                            }
+                        }
                     }
                 }
             }

@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, date
-from sqlalchemy import String, Float, Date, DateTime, Enum as SAEnum, func
+from sqlalchemy import String, Float, Boolean, Date, DateTime, Enum as SAEnum, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 import enum
@@ -42,6 +42,9 @@ class User(Base):
     data_usage_gb: Mapped[float] = mapped_column(Float, nullable=True, default=0.0)
     age_group: Mapped[AgeGroup] = mapped_column(SAEnum(AgeGroup), nullable=True)
     preferred_language: Mapped[str] = mapped_column(String(5), default="sq")
+
+    # Student flag — enables extra student-only discounts
+    is_student: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Device info — updated by mobile app on each session
     current_device_model: Mapped[str] = mapped_column(String(100), nullable=True)

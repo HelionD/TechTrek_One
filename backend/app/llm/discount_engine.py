@@ -37,9 +37,13 @@ async def generate_discounts_for_user(
         "device_model": getattr(user, "current_device_model", None),
         "device_year": getattr(user, "current_device_year", None),
         "device_brand": getattr(user, "current_device_brand", None),
+        "is_student": bool(getattr(user, "is_student", False)),
     }
 
     prompt_items = [f"User factors: {json.dumps(user_factors)}"]
+    prompt_items.append(
+        "\nNOTE: If the user is a student (is_student=true), apply an additional 5% discount on top of the base percentage."
+    )
     prompt_items.append("\nProducts:\n")
     for p in candidates:
         prompt_items.append(
@@ -78,11 +82,15 @@ async def generate_discounts_for_user(
         parsed = []
 
     results = []
-    # If parsed is empty, fallback to simple rule: postpaid -> 20% else 10%
+    is_student = bool(getattr(user, "is_student", False))
+    student_bonus = 0.05 if is_student else 0.0  # extra 5% for students
+
+    # If parsed is empty, fallback to simple rule: postpaid -> 20% else 10%, with student boost
     if not parsed:
-        default_pct = (
+        base_pct = (
             0.20 if str(getattr(user, "plan_type", "prepaid")) == "postpaid" else 0.10
         )
+        default_pct = min(base_pct + student_bonus, 0.50)  # cap at 50%
         for p in candidates:
             pct = default_pct
             final_price = (
@@ -96,20 +104,25 @@ async def generate_discounts_for_user(
                 p.id,
                 discount_percentage=round(pct * 100, 2),
                 final_price=round(final_price, 2) if final_price else None,
-                reasoning="fallback-rule",
-                llm_factors={"rule": "postpaid_boost"},
+                reasoning="fallback-rule" + ("-student" if is_student else ""),
+                llm_factors={"rule": "postpaid_boost", "is_student": is_student},
             )
             results.append({"product_id": str(p.id), "discount_id": str(discount.id)})
         return results
 
-    # Otherwise, persist results returned by LLM
+    # Otherwise, persist results returned by LLM — apply student bonus on top
     for item in parsed:
         try:
             url = item.get("product_url")
             pct = float(item.get("discount_percentage", 0))
+            # Apply student bonus
+            pct = min(pct + (student_bonus * 100), 50.0)
             final_price = item.get("final_price")
             reasoning = item.get("reasoning")
             llm_factors = item.get("llm_factors")
+            if llm_factors is None:
+                llm_factors = {}
+            llm_factors["is_student"] = is_student
             # find product by url
             prod = next(
                 (

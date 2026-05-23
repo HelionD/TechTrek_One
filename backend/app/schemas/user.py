@@ -25,6 +25,7 @@ class UserBase(BaseModel):
     data_usage_gb: Optional[float] = 0.0
     age_group: Optional[AgeGroup] = None
     preferred_language: str = "sq"
+    is_student: bool = False
 
 
 class UserCreate(UserBase):
@@ -38,6 +39,7 @@ class UserUpdate(BaseModel):
     data_usage_gb: Optional[float] = None
     age_group: Optional[AgeGroup] = None
     preferred_language: Optional[str] = None
+    is_student: Optional[bool] = None
     current_device_model: Optional[str] = None
     current_device_year: Optional[int] = None
     current_device_brand: Optional[str] = None

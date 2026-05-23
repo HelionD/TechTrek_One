@@ -6,8 +6,7 @@ ENV POSTGRES_USER=techtrek
 ENV POSTGRES_PASSWORD=secret
 ENV POSTGRES_DB=techtrek
 
-# Optional initialization script path. If you need extra DB setup,
-# add SQL files to /docker-entrypoint-initdb.d.
+# Initialization script — creates schema and seeds data on first startup
 COPY ./init.sql /docker-entrypoint-initdb.d/01-init.sql
 
 EXPOSE 5432

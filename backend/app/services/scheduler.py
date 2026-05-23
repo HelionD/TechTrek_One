@@ -17,10 +17,30 @@ scheduler = AsyncIOScheduler()
 async def _run_scrape():
     try:
         async with AsyncSessionLocal() as db:  # type: AsyncSession
-            await scrape_all(db)
+            result = await scrape_all(db)
+            print(f"Scrape complete: {result}")
+            return result
     except Exception as e:
-        # log and swallow to keep scheduler running
         print("Scrape job failed:", repr(e))
+        return None
+
+
+async def _run_initial_scrape():
+    """Run an initial scrape immediately on startup if DB has no products."""
+    try:
+        async with AsyncSessionLocal() as db:
+            from sqlalchemy import select, func
+            from app.models.product import Product
+
+            count_result = await db.execute(select(func.count()).select_from(Product))
+            count = count_result.scalar_one()
+            if count == 0:
+                print("No products found in DB. Running initial scrape...")
+                await _run_scrape()
+            else:
+                print(f"DB already has {count} products. Skipping initial scrape.")
+    except Exception as e:
+        print("Initial scrape check failed:", repr(e))
 
 
 async def _refresh_discounts():
@@ -42,7 +62,13 @@ async def _expire_discounts():
 
 
 def start_scheduler():
-    # Scrape every N hours
+    # Run an initial scrape immediately if DB is empty
+    try:
+        asyncio.create_task(_run_initial_scrape())
+    except Exception as e:
+        print("Failed to schedule initial scrape:", repr(e))
+
+    # Periodic scrape every N hours
     scheduler.add_job(
         lambda: asyncio.create_task(_run_scrape()),
         "interval",

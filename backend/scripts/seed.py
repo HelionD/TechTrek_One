@@ -25,6 +25,7 @@ async def seed(n: int = 50):
                 plan_name=("Post 100" if plan == PlanType.postpaid else "Pre 5"),
                 monthly_spend_avg=round(random.uniform(5, 150), 2),
                 data_usage_gb=round(random.uniform(0.1, 50.0), 2),
+                is_student=random.choice([True, False]),
             )
             await upsert_user(db, u)
 

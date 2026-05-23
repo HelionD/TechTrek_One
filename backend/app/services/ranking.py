@@ -35,6 +35,16 @@ def score_products_for_user(
         except Exception:
             pass
 
+        # Student boost: students get extra relevance for affordable devices
+        try:
+            if bool(getattr(user, "is_student", False)):
+                score += 5.0
+                # prefer cheaper items for students
+                if p.price_original and p.price_original < 50000:
+                    score += 10.0
+        except Exception:
+            pass
+
         # Freshness: prefer recently scraped items
         try:
             if getattr(p, "scraped_at", None):
