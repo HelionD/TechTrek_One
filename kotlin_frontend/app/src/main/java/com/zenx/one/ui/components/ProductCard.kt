@@ -42,7 +42,7 @@ fun ProductCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(160.dp)
+                    .height(200.dp) // Increased height from 160.dp
                     .background(Color(0xFFF5F5F5)),
                 contentAlignment = Alignment.Center
             ) {
@@ -53,10 +53,8 @@ fun ProductCard(
                             .crossfade(true)
                             .build(),
                         contentDescription = product.name,
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(12.dp)
+                        contentScale = ContentScale.Crop, // Changed from Fit to Crop to fill the box
+                        modifier = Modifier.fillMaxSize()
                     )
                 } else {
                     Text(
@@ -102,19 +100,19 @@ fun ProductCard(
                 // Price row
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     if (product.finalPrice != null) {
                         Text(
                             text = "${product.finalPrice.toInt()} L",
                             color = OnePurple,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 16.sp
                         )
-                        if (product.priceOriginal != null) {
+                        if (product.priceOriginal != null && product.priceOriginal > product.finalPrice) {
                             Text(
                                 text = "${product.priceOriginal.toInt()} L",
-                                color = Color(0xFF9E9E9E),
+                                color = Color.LightGray,
                                 fontSize = 12.sp,
                                 textDecoration = TextDecoration.LineThrough
                             )
@@ -123,8 +121,8 @@ fun ProductCard(
                         Text(
                             text = "${product.priceOriginal.toInt()} L",
                             color = OnePurple,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 16.sp
                         )
                     }
                 }

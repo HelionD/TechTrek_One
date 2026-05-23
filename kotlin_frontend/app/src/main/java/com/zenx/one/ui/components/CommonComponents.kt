@@ -1,12 +1,16 @@
 package com.zenx.one.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -19,6 +23,11 @@ import com.zenx.one.ui.theme.OneYellow
 fun OneTopBar(
     title: String? = null,
     subtitle: String? = null,
+    showBack: Boolean = false,
+    onBackClick: () -> Unit = {},
+    showCart: Boolean = false,
+    cartViewModel: com.zenx.one.ui.viewmodel.CartViewModel? = null,
+    onCartClick: () -> Unit = {},
     showFilter: Boolean = false,
     onFilterClick: () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {}
@@ -26,43 +35,81 @@ fun OneTopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(OnePurple)
+            .background(Color.White)
             .statusBarsPadding()
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Logo area
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        // Logo and Title area
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (showBack) {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_arrow_back),
+                        contentDescription = "Back",
+                        tint = OnePurple
+                    )
+                }
+            }
             OneLogo()
             if (title != null) {
-                Spacer(modifier = Modifier.width(8.dp))
                 Column {
                     if (subtitle != null) {
                         Text(
                             text = subtitle,
-                            color = Color.White.copy(alpha = 0.8f),
+                            color = Color.Gray,
                             fontSize = 11.sp
                         )
                     }
                     Text(
                         text = title,
-                        color = Color.White,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 14.sp
+                        color = OnePurple,
+                        fontWeight = FontWeight.Black,
+                        fontSize = 20.sp,
+                        letterSpacing = (-0.5).sp
                     )
                 }
+            } else {
+                Text(
+                    text = "",
+                    color = OnePurple,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 22.sp,
+                    letterSpacing = (-0.5).sp
+                )
             }
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             actions()
+            if (showCart && cartViewModel != null) {
+                val cartState = cartViewModel.uiState.collectAsState().value
+                val count = cartState.items.sumOf { it.quantity }
+                BadgedBox(
+                    badge = {
+                        if (count > 0) {
+                            Badge(containerColor = OnePurple) {
+                                Text(count.toString(), color = Color.White)
+                            }
+                        }
+                    },
+                    modifier = Modifier.padding(end = 8.dp).clickable { onCartClick() }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_basket),
+                        contentDescription = "Cart",
+                        tint = OnePurple,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
             if (showFilter) {
                 IconButton(onClick = onFilterClick) {
                     Icon(
                         painter = painterResource(R.drawable.ic_filter),
                         contentDescription = "Filter",
-                        tint = Color.White
+                        tint = OnePurple
                     )
                 }
             }
@@ -72,33 +119,12 @@ fun OneTopBar(
 
 @Composable
 fun OneLogo(modifier: Modifier = Modifier) {
-    // "1" circle + "one" text — matching the Figma logo
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Surface(
-            shape = MaterialTheme.shapes.small,
-            color = OneYellow,
-            modifier = Modifier.size(28.dp)
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text(
-                    text = "1",
-                    color = Color.White,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 16.sp
-                )
-            }
-        }
-        Text(
-            text = "one",
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            fontSize = 18.sp
-        )
-    }
+    Image(
+        painter = painterResource(R.drawable.logo_png),
+        contentDescription = "One Logo",
+        modifier = modifier.height(40.dp),
+        contentScale = ContentScale.Fit
+    )
 }
 
 @Composable
@@ -114,6 +140,7 @@ fun OneBottomNavBar(
             Triple(R.drawable.ic_account_box, "Profile",  "profile"),
             Triple(R.drawable.ic_document,    "Home",     "home"),
             Triple(R.drawable.ic_basket,      "Shop",     "shop"),
+            Triple(R.drawable.ic_basket,      "Cart",     "cart"),
             Triple(R.drawable.ic_settings,    "Settings", "settings"),
             Triple(R.drawable.ic_menu,        "Menu",     "menu"),
         )

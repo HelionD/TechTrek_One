@@ -16,16 +16,21 @@ import com.zenx.one.ui.components.OneLogo
 import com.zenx.one.ui.theme.OnePurple
 import com.zenx.one.ui.theme.OneYellow
 
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.res.painterResource
+import androidx.navigation.NavController
+import com.zenx.one.ui.navigation.Screen
+
 // ─── Profile Screen ────────────────────────────────────────────────────────
 
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF5F5F5))
     ) {
-        // Header
+        // ... (Header code same)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -91,6 +96,9 @@ fun ProfileScreen() {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            ProfileMenuItem(icon = "❤️", title = "My Wishlist", subtitle = "View saved products", onClick = {
+                navController.navigate(Screen.Wishlist.route)
+            })
             ProfileMenuItem(icon = "📋", title = "My Plan", subtitle = "Post 100")
             ProfileMenuItem(icon = "📱", title = "My Device", subtitle = "Not set")
             ProfileMenuItem(icon = "🎁", title = "My Discounts", subtitle = "View personalized offers")
@@ -102,11 +110,12 @@ fun ProfileScreen() {
 }
 
 @Composable
-private fun ProfileMenuItem(icon: String, title: String, subtitle: String) {
+private fun ProfileMenuItem(icon: String, title: String, subtitle: String, onClick: () -> Unit = {}) {
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(1.dp)
+        elevation = CardDefaults.cardElevation(1.dp),
+        modifier = Modifier.clickable { onClick() }
     ) {
         Row(
             modifier = Modifier

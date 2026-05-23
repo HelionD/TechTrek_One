@@ -26,109 +26,87 @@ import com.zenx.one.ui.viewmodel.ShopViewModel
 fun ShopScreen(
     shopViewModel: ShopViewModel = viewModel(),
     cartViewModel: CartViewModel = viewModel(),
-    onProductClick: (Product) -> Unit = {}
+    onProductClick: (Product) -> Unit = {},
+    onCartClick: () -> Unit = {}
 ) {
     val uiState by shopViewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
-    ) {
-        // Top bar
-        ShopTopBar(
-            onFilterClick = { /* TODO: show filter sheet */ }
-        )
+    LaunchedEffect(uiState.message) {
+        uiState.message?.let {
+            snackbarHostState.showSnackbar(it)
+            shopViewModel.clearMessage()
+        }
+    }
 
-        // Category tabs
-        CategoryTabs(
-            selected = uiState.selectedCategory,
-            onSelect = { shopViewModel.selectCategory(it) }
-        )
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            OneTopBar(
+                showCart = true,
+                cartViewModel = cartViewModel,
+                onCartClick = onCartClick,
+                showFilter = true,
+                onFilterClick = { /* TODO */ }
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .background(Color(0xFFF5F5F5))
+        ) {
+            // Category tabs
+            CategoryTabs(
+                selected = uiState.selectedCategory,
+                onSelect = { shopViewModel.selectCategory(it) }
+            )
 
-        // Product grid
-        if (uiState.isLoading) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(6) {
-                    ProductCardSkeleton()
+            // Product grid
+            if (uiState.isLoading) {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(6) {
+                        ProductCardSkeleton()
+                    }
                 }
-            }
-        } else if (uiState.error != null) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = "Failed to load products", color = Color(0xFF9E9E9E))
-                    Spacer(Modifier.height(12.dp))
-                    Button(
-                        onClick = { shopViewModel.loadProducts() },
-                        colors = ButtonDefaults.buttonColors(containerColor = OnePurple)
-                    ) {
-                        Text("Retry")
+            } else if (uiState.error != null) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(text = "Failed to load products", color = Color(0xFF9E9E9E))
+                        Spacer(Modifier.height(12.dp))
+                        Button(
+                            onClick = { shopViewModel.loadProducts() },
+                            colors = ButtonDefaults.buttonColors(containerColor = OnePurple)
+                        ) {
+                            Text("Retry")
+                        }
+                    }
+                }
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    contentPadding = PaddingValues(
+                        start = 16.dp, end = 16.dp, top = 12.dp, bottom = 96.dp
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(uiState.products) { product ->
+                        ProductCard(
+                            product = product,
+                            onClick = { onProductClick(product) }
+                        )
                     }
                 }
             }
-        } else {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(
-                    start = 16.dp, end = 16.dp, top = 12.dp, bottom = 96.dp
-                ),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(uiState.products) { product ->
-                    ProductCard(
-                        product = product,
-                        onClick = { onProductClick(product) }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ShopTopBar(onFilterClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .statusBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            // One logo mark
-            Surface(
-                shape = RoundedCornerShape(6.dp),
-                color = OnePurple,
-                modifier = Modifier.size(28.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text("1", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 15.sp)
-                }
-            }
-            Text(
-                text = "One Shop",
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                color = Color(0xFF1A1A1A)
-            )
-        }
-        IconButton(onClick = onFilterClick) {
-            Icon(
-                painter = painterResource(R.drawable.ic_filter),
-                contentDescription = "Filter",
-                tint = Color(0xFF424242),
-                modifier = Modifier.size(22.dp)
-            )
         }
     }
 }

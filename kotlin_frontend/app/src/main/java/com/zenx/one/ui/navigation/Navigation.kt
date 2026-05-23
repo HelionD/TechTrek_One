@@ -19,6 +19,7 @@ sealed class Screen(val route: String) {
         fun createRoute(id: String) = "product/$id"
     }
     object Cart     : Screen("cart")
+    object Wishlist : Screen("wishlist")
     object Profile  : Screen("profile")
     object Settings : Screen("settings")
     object Menu     : Screen("menu")
@@ -34,6 +35,7 @@ val bottomNavItems = listOf(
     BottomNavItem(Screen.Profile,  R.drawable.ic_account_box, "Profile"),
     BottomNavItem(Screen.Home,     R.drawable.ic_document,    "Home"),
     BottomNavItem(Screen.Shop,     R.drawable.ic_basket,      "Shop"),
+    BottomNavItem(Screen.Cart,     R.drawable.ic_basket,      "Cart"),
     BottomNavItem(Screen.Settings, R.drawable.ic_settings,    "Settings"),
     BottomNavItem(Screen.Menu,     R.drawable.ic_menu,        "Menu"),
 )
@@ -60,7 +62,8 @@ fun OneNavHost(
                 onProductClick = { product ->
                     cartViewModel.selectProduct(product)
                     navController.navigate(Screen.Product.createRoute(product.id))
-                }
+                },
+                onCartClick = { navController.navigate(Screen.Cart.route) }
             )
         }
 
@@ -74,8 +77,26 @@ fun OneNavHost(
             )
         }
 
+        composable(Screen.Cart.route) {
+            CartScreen(
+                cartViewModel = cartViewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.Wishlist.route) {
+            WishlistScreen(
+                cartViewModel = cartViewModel,
+                onProductClick = { product ->
+                    cartViewModel.selectProduct(product)
+                    navController.navigate(Screen.Product.createRoute(product.id))
+                },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
         composable(Screen.Profile.route) {
-            ProfileScreen()
+            ProfileScreen(navController = navController)
         }
 
         composable(Screen.Settings.route) {

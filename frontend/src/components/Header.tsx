@@ -16,7 +16,7 @@ export default function Header({ cartItems, onCartClick, onShopClick, isShopPage
   const [langOpen, setLangOpen] = useState(false);
   const { language, setLanguage, t } = useLanguage();
   const totalQty = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const logoUrl = new URL('/image-removebg-preview.png', import.meta.url).href;
+  const logoUrl = '/logo.png';
 
   const NAV_LINKS = [t.nav.mobile, t.nav.internetTV, t.nav.eShop, t.nav.customerCare];
 
