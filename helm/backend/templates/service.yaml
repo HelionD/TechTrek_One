@@ -1,9 +1,12 @@
-piVersion: v1
-kind: Secret
+apiVersion: v1
+kind: Service
 metadata:
-  name: backend-secret
-  namespace: {{ .Values.namespace | default "techtrek" }}
-type: Opaque
-stringData:
-  DATABASE_URL: {{ .Values.databaseUrl | quote }}
-  SECRET_KEY: {{ .Values.secretKey | quote }}
+  name: backend-service
+  namespace: techtrek 
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: {{ .Values.service.port }}
+    targetPort: {{ .Values.service.port }}
+  type: ClusterIP
