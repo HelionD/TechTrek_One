@@ -1,0 +1,12 @@
+image:
+  repository: helion444/frontend
+  tag: v1
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 80
+
+containerPort: 80
