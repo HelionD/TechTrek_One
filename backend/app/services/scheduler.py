@@ -70,21 +70,21 @@ def start_scheduler():
 
     # Periodic scrape every N hours
     scheduler.add_job(
-        lambda: asyncio.create_task(_run_scrape()),
+        _run_scrape,
         "interval",
         hours=settings.SCRAPE_INTERVAL_HOURS,
         id="scrape_job",
     )
     # Refresh discounts every 24 hours
     scheduler.add_job(
-        lambda: asyncio.create_task(_refresh_discounts()),
+        _refresh_discounts,
         "interval",
         hours=24,
         id="refresh_discounts",
     )
     # Expire discounts every 1 hour
     scheduler.add_job(
-        lambda: asyncio.create_task(_expire_discounts()),
+        _expire_discounts,
         "interval",
         hours=1,
         id="expire_discounts",
@@ -95,5 +95,6 @@ def start_scheduler():
 def shutdown_scheduler():
     try:
         scheduler.shutdown(wait=False)
-    except Exception:
-        pass
+
+    except Exception as e:
+        print("Scheduler shutdown error:", repr(e))

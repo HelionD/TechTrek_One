@@ -14,10 +14,11 @@ class ProductRepository(private val api: OneApiService = OneApiService.instance)
     suspend fun getProducts(
         category: String? = null,
         page: Int = 1,
-        limit: Int = 20
+        limit: Int = 20,
+        userId: String? = null,
     ): Result<ProductListResponse> {
         return try {
-            val response = api.getProducts(category, page, limit)
+            val response = api.getProducts(category, page, limit, userId)
             if (response.isSuccessful) {
                 Result.Success(response.body()!!)
             } else {

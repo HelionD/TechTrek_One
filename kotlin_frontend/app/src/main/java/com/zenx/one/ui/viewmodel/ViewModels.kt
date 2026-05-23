@@ -25,18 +25,22 @@ class ShopViewModel(
     private val _uiState = MutableStateFlow(ShopUiState(isLoading = true))
     val uiState: StateFlow<ShopUiState> = _uiState.asStateFlow()
 
+    // Demo user ID — in production, from auth session
+    private val demoUserId: String? = null // set via SharedPreferences or argument
+
     init { loadProducts() }
 
     fun loadProducts(category: String? = null) {
         val effectiveCategory = category ?: _uiState.value.selectedCategory
         viewModelScope.launch {
-            // Load products first
             _uiState.update { it.copy(isLoading = true, error = null) }
-            val productResult = productRepo.getProducts(category = effectiveCategory)
+            val productResult = productRepo.getProducts(
+                category = effectiveCategory,
+                userId = demoUserId,
+            )
             when (productResult) {
                 is Result.Success -> {
                     val productData = productResult.data
-                    // Directly assign products (already contain discount fields)
                     _uiState.update {
                         it.copy(
                             products = productData.items,

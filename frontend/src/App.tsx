@@ -22,6 +22,9 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const shopRef = useRef<HTMLDivElement | null>(null);
 
+  // Demo user — in production, this comes from auth context
+  const userId = localStorage.getItem('demo_user_id') || undefined;
+
   const loadProducts = useCallback(async (signal: AbortSignal) => {
     setLoading(true);
     setError(null);
@@ -31,6 +34,7 @@ function App() {
         category: selectedCategory || undefined,
         page: 1,
         limit: 48,
+        userId,
       });
       if (!signal.aborted) {
         setProducts(response.items);
@@ -45,7 +49,7 @@ function App() {
         setLoading(false);
       }
     }
-  }, [selectedCategory]);
+  }, [selectedCategory, userId]);
 
   useEffect(() => {
     const controller = new AbortController();

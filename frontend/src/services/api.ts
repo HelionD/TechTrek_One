@@ -6,11 +6,13 @@ export async function fetchProducts(params: {
   category?: string;
   page?: number;
   limit?: number;
+  userId?: string;
 } = {}): Promise<ProductListResponse> {
   const qs = new URLSearchParams();
   if (params.category) qs.set('category', params.category);
   if (params.page) qs.set('page', String(params.page));
   if (params.limit) qs.set('limit', String(params.limit));
+  if (params.userId) qs.set('user_id', params.userId);
 
   const res = await fetch(`${BASE}/products/?${qs}`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
