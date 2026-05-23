@@ -85,8 +85,9 @@ jobs:
           VERSION=v${{ github.run_number }}
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add helm/frontend/values.yaml
-          git diff --staged --quiet && echo "no changes" && exit 0
-          git commit -m "ci: update frontend image to $VERSION"
           git pull --rebase origin master
+          sed -i "s|tag:.*|tag: $VERSION|" helm/db/values.yaml
+          git add helm/db/values.yaml
+          git diff --staged --quiet && echo "no changes" && exit 0
+          git commit -m "ci: update db image to $VERSION [skip ci]"
           git push
