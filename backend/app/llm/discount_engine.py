@@ -112,7 +112,8 @@ async def generate_discounts_for_user(
             )
             results.append({"product_id": str(p.id), "discount_id": str(discount.id)})
         print(f"DEBUG: Created {len(results)} discounts via fallback")
-        await db.commit()
+        if db is not None:
+            await db.commit()
         return results
 
     # Otherwise, persist results returned by LLM — apply student bonus on top
@@ -154,5 +155,6 @@ async def generate_discounts_for_user(
         except Exception:
             continue
 
-    await db.commit()
+    if db is not None:
+        await db.commit()
     return results
