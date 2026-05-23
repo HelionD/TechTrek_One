@@ -16,7 +16,6 @@ ollama_proc = None
 
 
 def start_ollama():
-    global ollama_proc
     try:
         # Start Ollama serve in the background
         ollama_proc = subprocess.Popen(
