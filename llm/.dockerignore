@@ -1,0 +1,45 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.env/
+.env.local
+
+# Git (never include repo metadata)
+.git/
+.gitignore
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Logs (VERY IMPORTANT for IDS project)
+*.log
+logs/
+var/
+
+# Local dev stuff
+.vscode/
+.idea/
+
+# Test / cache
+.pytest_cache/
+.mypy_cache/
+
+# Docker files (optional safety)
+Dockerfile
+docker-compose.yml
+
+# Large or sensitive files
+*.sqlite
+*.db
+
+# AI / model caches (if you later add Ollama models locally)
+~/.ollama/
+
+# Node stuff (just in case repo grows later)
+node_modules/

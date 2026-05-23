@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual env
+venv/
+.env
+.env.local
+
+# Logs (VERY IMPORTANT for IDS)
+*.log
+logs/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# DB files (if you add later)
+*.sqlite
+*.db
+
+# Docker overrides (optional)
+docker-compose.override.yml
+
+# AI / cache
+.cache/
