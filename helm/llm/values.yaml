@@ -1,5 +1,10 @@
-image: helion444/llm:test
+image:
+  repository: helion444/llm
+  tag: test
+  pullPolicy: IfNotPresent
+
 replicaCount: 1
- 
+namespace: ""  # Leave empty to use ArgoCD's default
+
 service:
   port: 11434

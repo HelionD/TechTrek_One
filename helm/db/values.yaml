@@ -1,8 +1,18 @@
+<<<<<<< Updated upstream
 image: "helion444/db:latest"
 
 replicaCount: 1
 
 namespace: database
+=======
+image:
+  repository: helion444/db
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+namespace: ""
+>>>>>>> Stashed changes
 
 service:
   type: ClusterIP
